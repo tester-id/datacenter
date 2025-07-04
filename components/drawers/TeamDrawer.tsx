@@ -17,27 +17,27 @@ export function TeamDrawer() {
     {
       name: "Iftihar Abdillah",
       number: "230602100",
-      image: "./team/if.jpg",
+      image: "/team/if.jpg",
     },
     {
       name: "Reza Aulia",
       number: "230602114",
-      image: "./team/eja.jpg",
+      image: "/team/eja.jpg",
     },
     {
       name: "Samsul Wali Hamidi",
       number: "230602116",
-      image: "./team/hamidi.jpg",
+      image: "/team/hamidi.jpg",
     },
     {
       name: "Siska Widia Candra Atnira",
       number: "230602117",
-      image: "./team/siska.jpg",
+      image: "/team/siska.jpg",
     },
     {
       name: "Wanda Maulana Dirayadi",
       number: "230602119",
-      image: "./team/wanda.jpg",
+      image: "/team/wanda.jpg",
     },
   ]
 
