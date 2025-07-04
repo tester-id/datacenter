@@ -17,7 +17,7 @@ export function TeamDrawer() {
     {
       name: "Iftihar Abdillah",
       number: "230602100",
-      image: "/team/if.jpg",
+      image: "/team/if1.jpg",
     },
     {
       name: "Reza Aulia",
