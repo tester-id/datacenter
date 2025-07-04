@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import { format } from "date-fns";
 import { getEntityId } from "@/lib/thingsboard";
