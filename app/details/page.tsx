@@ -80,7 +80,7 @@ export default function DetailsPage() {
   const [gasNow, setGasNow] = useState<number>(0);
   const gasPercent = (gasNow / 5000) * 100;
   const [dailyData, setDailyData] = useState<DailyData[]>([]);
-
+  const [gaugeSize, setGaugeSize] = useState(200);
   useEffect(() => {
     fetchChartData(range).then(setChartData);
     fetch(`/api/telemetry/gas/latest`)
@@ -88,6 +88,16 @@ export default function DetailsPage() {
       .then((d) => setGasNow(d.value));
     fetchDailyData().then(setDailyData);
   }, [range]);
+
+  useEffect(() => {
+    // Only run on client
+    const handleResize = () => {
+      setGaugeSize(window.innerWidth < 640 ? 160 : 200);
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   return (
     <div className="flex min-h-screen bg-gradient-to-t from-[#111627] to-[#344378]">
@@ -155,30 +165,25 @@ export default function DetailsPage() {
                 />
               </AreaChart>
             </ResponsiveContainer>
-          </Card>
-
-          {/* Gas Gauge */}
-          <Card className="p-4 flex flex-col items-center justify-center rounded-xl bg-[#1e293b]">
-            <h3 className="text-xl font-semibold mb-4 text-white">
-              Gas Concentration (Current)
-            </h3>
-            <LiquidFillGauge
-              value={gasPercent}
-              minValue={0}
-              maxValue={5000}
-              width={window.innerWidth < 640 ? 160 : 200}
-              height={window.innerWidth < 640 ? 160 : 200}
-              textStyle={{ fill: "#fff", fontSize: 22 }}
-              riseAnimation
-              waveAnimation
-              waveFrequency={2}
-              waveAmplitude={3}
-              gradient
-              textRenderer={() => (
-                <tspan>{Math.round(gasNow)} ppm</tspan>
-              )}
-            />
-            <p className="mt-2 text-sm text-gray-300">ppm</p>
+            <div className="flex flex-col items-center mt-6">
+              <LiquidFillGauge
+                value={gasPercent}
+                minValue={0}
+                maxValue={5000}
+                width={gaugeSize}
+                height={gaugeSize}
+                textStyle={{ fill: "#fff", fontSize: 22 }}
+                riseAnimation
+                waveAnimation
+                waveFrequency={2}
+                waveAmplitude={3}
+                gradient
+                textRenderer={() => (
+                  <tspan>{Math.round(gasNow)} ppm</tspan>
+                )}
+              />
+              <p className="mt-2 text-sm text-gray-300">ppm</p>
+            </div>
           </Card>
         </div>
 
