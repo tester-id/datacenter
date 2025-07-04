@@ -81,16 +81,16 @@ export default function DetailsPage() {
   const gasPercent = (gasNow / 5000) * 100;
   const [dailyData, setDailyData] = useState<DailyData[]>([]);
   const [gaugeSize, setGaugeSize] = useState(200);
+
   useEffect(() => {
     fetchChartData(range).then(setChartData);
     fetch(`/api/telemetry/gas/latest`)
-      .then((res) => res.ok ? res.json() : { value: 0 })
+      .then((res) => (res.ok ? res.json() : { value: 0 }))
       .then((d) => setGasNow(d.value));
     fetchDailyData().then(setDailyData);
   }, [range]);
 
   useEffect(() => {
-    // Only run on client
     const handleResize = () => {
       setGaugeSize(window.innerWidth < 640 ? 160 : 200);
     };
@@ -165,6 +165,7 @@ export default function DetailsPage() {
                 />
               </AreaChart>
             </ResponsiveContainer>
+
             <div className="flex flex-col items-center mt-6">
               <LiquidFillGauge
                 value={gasPercent}
@@ -228,6 +229,7 @@ export default function DetailsPage() {
         </Card>
       </main>
 
+      {/* Floating Back Button */}
       <div className="group fixed bottom-6 right-6 z-50">
         <button
           onClick={() => router.push("/")}
