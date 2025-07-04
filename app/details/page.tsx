@@ -165,26 +165,28 @@ export default function DetailsPage() {
                 />
               </AreaChart>
             </ResponsiveContainer>
+          </Card>
 
-            <div className="flex flex-col items-center mt-6">
-              <LiquidFillGauge
-                value={gasPercent}
-                minValue={0}
-                maxValue={5000}
-                width={gaugeSize}
-                height={gaugeSize}
-                textStyle={{ fill: "#fff", fontSize: 22 }}
-                riseAnimation
-                waveAnimation
-                waveFrequency={2}
-                waveAmplitude={3}
-                gradient
-                textRenderer={() => (
-                  <tspan>{Math.round(gasNow)} ppm</tspan>
-                )}
-              />
-              <p className="mt-2 text-sm text-gray-300">ppm</p>
-            </div>
+          {/* Gauge */}
+          <Card className="p-4 rounded-xl bg-[#1e293b] flex flex-col items-center justify-center">
+            <h3 className="text-xl font-semibold mb-4 text-white text-center">
+              Gas Concentration (Current)
+            </h3>
+            <LiquidFillGauge
+              value={gasPercent}
+              minValue={0}
+              maxValue={5000}
+              width={gaugeSize}
+              height={gaugeSize}
+              textStyle={{ fill: "#fff", fontSize: 22 }}
+              riseAnimation
+              waveAnimation
+              waveFrequency={2}
+              waveAmplitude={3}
+              gradient
+              textRenderer={() => <tspan>{Math.round(gasNow)} ppm</tspan>}
+            />
+            <p className="mt-2 text-sm text-gray-300">ppm</p>
           </Card>
         </div>
 
