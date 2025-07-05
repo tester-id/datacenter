@@ -75,7 +75,7 @@ const getAirQualityCategory = (gas: number, temp: number, hum: number): string =
 
 export default function DetailsPage() {
   const router = useRouter();
-  const [range, setRange] = useState<"12d" | "7d" | "24h" | "12h">("7d");
+  const [range, setRange] = useState<"12d" | "7d" | "24h" | "12h" | "realtime">("7d");
   const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
   const [gasNow, setGasNow] = useState<number>(0);
   const gasPercent = (gasNow / 5000) * 100;
@@ -99,6 +99,27 @@ export default function DetailsPage() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  useEffect(() => {
+  let interval: NodeJS.Timeout;
+
+  if (range === "realtime") {
+    interval = setInterval(async () => {
+      const res = await fetch("/api/telemetry/realtime");
+      if (res.ok) {
+        const data = await res.json();
+        setChartData((prev) => [...prev.slice(-100), data]);
+      }
+    }, 2000);
+  } else {
+    // fetch historical
+    fetchChartData(range).then(setChartData);
+  }
+
+  return () => {
+    if (interval) clearInterval(interval);
+  };
+}, [range]);
+
   return (
     <div className="flex min-h-screen bg-gradient-to-t from-[#111627] to-[#344378]">
       <main className="flex-1 w-full max-w-screen-xl mx-auto px-4 md:px-6 lg:px-8 py-6 space-y-6">
@@ -106,14 +127,14 @@ export default function DetailsPage() {
 
         {/* Range Selector */}
         <div className="flex gap-2 flex-wrap">
-          {["12d", "7d", "24h", "12h"].map((r) => (
+          {["12d", "7d", "24h", "12h", "realtime"].map((r) => (
             <Button
               key={r}
               className="cursor-pointer"
               variant={range === r ? "default" : "outline"}
               onClick={() => setRange(r as any)}
             >
-              {r.toUpperCase()}
+              {r === "realtime" ? "Real-Time" : r.toUpperCase()}
             </Button>
           ))}
         </div>
@@ -195,39 +216,64 @@ export default function DetailsPage() {
           <h3 className="text-xl font-semibold mb-4 text-white">
             Latest 7 Days Data
           </h3>
-          <div className="w-full overflow-x-auto">
-            <table className="min-w-[600px] w-full text-sm text-left">
-              <thead className="text-xs text-white uppercase border-b border-white/10">
-                <tr>
-                  <th className="px-4 py-2">Day/Date</th>
-                  <th className="px-4 py-2">Gas (ppm)</th>
-                  <th className="px-4 py-2">Temperature (°C)</th>
-                  <th className="px-4 py-2">Humidity (%)</th>
-                  <th className="px-4 py-2">Category</th>
-                </tr>
-              </thead>
-              <tbody>
-                {dailyData.map((item, i) => {
-                  const category = getAirQualityCategory(item.gas, item.temp, item.hum);
-                  return (
-                    <tr key={i} className="border-b border-white/5">
-                      <td className="px-4 py-2 text-gray-300">
-                        {format(parseISO(item.date), "EEEE, dd MMMM yyyy")}
-                      </td>
-                      <td className="px-4 py-2 text-gray-300">{formatNumber(item.gas)}</td>
-                      <td className="px-4 py-2 text-gray-300">{formatNumber(item.temp)}</td>
-                      <td className="px-4 py-2 text-gray-300">{formatNumber(item.hum)}</td>
-                      <td className="px-4 py-2">
-                        <span className={`px-2 py-1 text-xs rounded-full font-semibold ${getCategoryColor(category)}`}>
-                          {category}
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+          <div className="hidden md:block overflow-auto">
+          <table className="min-w-[600px] w-full text-sm text-left">
+            <thead className="text-xs text-white uppercase border-b border-white/10">
+              <tr>
+                <th className="px-4 py-2">Day/Date</th>
+                <th className="px-4 py-2">Gas (ppm)</th>
+                <th className="px-4 py-2">Temperature (°C)</th>
+                <th className="px-4 py-2">Humidity (%)</th>
+                <th className="px-4 py-2">Category</th>
+              </tr>
+            </thead>
+            <tbody>
+              {dailyData.map((item, i) => {
+                const category = getAirQualityCategory(item.gas, item.temp, item.hum);
+                return (
+                  <tr key={i} className="border-b border-white/5">
+                    <td className="px-4 py-2 text-gray-300">
+                      {format(parseISO(item.date), "EEEE, dd MMM yyyy")}
+                    </td>
+                    <td className="px-4 py-2 text-gray-300">{formatNumber(item.gas)}</td>
+                    <td className="px-4 py-2 text-gray-300">{formatNumber(item.temp)}</td>
+                    <td className="px-4 py-2 text-gray-300">{formatNumber(item.hum)}</td>
+                    <td className="px-4 py-2">
+                      <span className={`px-2 py-1 text-xs rounded-full font-semibold ${getCategoryColor(category)}`}>
+                        {category}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        {/* 📱 Mobile Cards */}
+        <div className="md:hidden space-y-4">
+          {dailyData.map((item, i) => {
+            const category = getAirQualityCategory(item.gas, item.temp, item.hum);
+            return (
+              <div key={i} className="bg-[#0f172a] rounded-lg p-4 shadow border border-white/10">
+                <p className="text-sm text-white font-semibold mb-1">
+                  {format(parseISO(item.date), "EEEE, dd MMM yyyy")}
+                </p>
+                <div className="text-sm text-gray-300 space-y-1">
+                  <p>Gas: {formatNumber(item.gas)} ppm</p>
+                  <p>Temperature: {formatNumber(item.temp)} °C</p>
+                  <p>Humidity: {formatNumber(item.hum)}%</p>
+                  <p>
+                    Category:{" "}
+                    <span className={`px-2 py-1 text-xs rounded-full font-semibold ${getCategoryColor(category)}`}>
+                      {category}
+                    </span>
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
         </Card>
       </main>
 

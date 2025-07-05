@@ -42,3 +42,30 @@ export async function getEntityId(): Promise<{ id: string; type: string; token: 
     token,
   };
 }
+
+export async function getLatestTelemetry(): Promise<{
+  time: string;
+  tempIn: number;
+  humIn: number;
+  gas: number;
+}> {
+  const { id, token } = await getEntityId();
+
+  const res = await fetch(
+    `${TB_API_URL}/api/plugins/telemetry/DEVICE/${id}/values/timeseries?keys=tempIn,humIn,gas`,
+    {
+      headers: { "X-Authorization": `Bearer ${token}` },
+    }
+  );
+
+  if (!res.ok) throw new Error("Failed to fetch latest telemetry");
+
+  const json = await res.json();
+
+  return {
+    time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" }),
+    tempIn: parseFloat(json.tempIn?.[0]?.value || "0"),
+    humIn: parseFloat(json.humIn?.[0]?.value || "0"),
+    gas: parseFloat(json.gas?.[0]?.value || "0"),
+  };
+}
